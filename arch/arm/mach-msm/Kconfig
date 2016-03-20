@@ -167,4 +167,8 @@ config MSM_V2_TLMM
 
 config MSM_SCM
 	bool
+
+config STATE_NOTIFIER
+        bool "State Notifier"
+
 endif
