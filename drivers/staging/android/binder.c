@@ -1536,11 +1536,15 @@ static void binder_transaction_buffer_release(struct binder_proc *proc,
 			       debug_id, (u64)*offp, buffer->data_size);
 			continue;
 		}
-		fp = (struct flat_binder_object *)(buffer->data + *offp);
-		switch (fp->type) {
+		hdr = (struct binder_object_header *)(buffer->data + *offp);
+		switch (hdr->type) {
 		case BINDER_TYPE_BINDER:
 		case BINDER_TYPE_WEAK_BINDER: {
-			struct binder_node *node = binder_get_node(proc, fp->binder);
+			struct flat_binder_object *fp;
+			struct binder_node *node;
+
+			fp = to_flat_binder_object(hdr);
+			node = binder_get_node(proc, fp->binder);
 			if (node == NULL) {
 				pr_err("transaction release %d bad node %016llx\n",
 				       debug_id, (u64)fp->binder);
@@ -1549,12 +1553,17 @@ static void binder_transaction_buffer_release(struct binder_proc *proc,
 			binder_debug(BINDER_DEBUG_TRANSACTION,
 				     "        node %d u%016llx\n",
 				     node->debug_id, (u64)node->ptr);
-			binder_dec_node(node, fp->type == BINDER_TYPE_BINDER, 0);
+			binder_dec_node(node, hdr->type == BINDER_TYPE_BINDER,
+					0);
 		} break;
 		case BINDER_TYPE_HANDLE:
 		case BINDER_TYPE_WEAK_HANDLE: {
-			struct binder_ref *ref = binder_get_ref(proc, fp->handle,
-						fp->type == BINDER_TYPE_HANDLE);
+			struct flat_binder_object *fp;
+			struct binder_ref *ref;
+
+			fp = to_flat_binder_object(hdr);
+			ref = binder_get_ref(proc, fp->handle,
+					     hdr->type == BINDER_TYPE_HANDLE);
 			if (ref == NULL) {
 				pr_err("transaction release %d bad handle %d\n",
 				 debug_id, fp->handle);
@@ -1563,12 +1572,14 @@ static void binder_transaction_buffer_release(struct binder_proc *proc,
 			binder_debug(BINDER_DEBUG_TRANSACTION,
 				     "        ref %d desc %d (node %d)\n",
 				     ref->debug_id, ref->desc, ref->node->debug_id);
-			binder_dec_ref(&ref, fp->type == BINDER_TYPE_HANDLE);
+			binder_dec_ref(&ref, hdr->type == BINDER_TYPE_HANDLE);
 		} break;
 
-		case BINDER_TYPE_FD:
+		case BINDER_TYPE_FD: {
+			struct binder_fd_object *fp = to_binder_fd_object(hdr);
+
 			binder_debug(BINDER_DEBUG_TRANSACTION,
-				     "        fd %d\n", fp->handle);
+				     "        fd %d\n", fp->fd);
 			if (failed_at)
 				task_close_fd(proc, fp->fd);
 		} break;
@@ -1621,7 +1632,7 @@ static void binder_transaction_buffer_release(struct binder_proc *proc,
 		} break;
 		default:
 			pr_err("transaction release %d bad object type %x\n",
-				debug_id, fp->type);
+				debug_id, hdr->type);
 			break;
 		}
 	}
@@ -2120,22 +2131,21 @@ static void binder_transaction(struct binder_proc *proc,
 	sg_buf_end = sg_bufp + extra_buffers_size;
 	off_min = 0;
 	for (; offp < off_end; offp++) {
-		struct flat_binder_object *fp;
-		if (*offp > t->buffer->data_size - sizeof(*fp) ||
-		    *offp < off_min ||
-		    t->buffer->data_size < sizeof(*fp) ||
-		    !IS_ALIGNED(*offp, sizeof(u32))) {
-			binder_user_error("%d:%d got transaction with invalid offset, %lld (min %lld, max %lld)\n",
+		struct binder_object_header *hdr;
+		size_t object_size = binder_validate_object(t->buffer, *offp);
+
+		if (object_size == 0 || *offp < off_min) {
+			binder_user_error("%d:%d got transaction with invalid offset (%lld, min %lld max %lld) or object.\n",
 					  proc->pid, thread->pid, (u64)*offp,
 					  (u64)off_min,
-					  (u64)(t->buffer->data_size -
-					  sizeof(*fp)));
+					  (u64)t->buffer->data_size);
 			return_error = BR_FAILED_REPLY;
 			goto err_bad_offset;
 		}
-		fp = (struct flat_binder_object *)(t->buffer->data + *offp);
-		off_min = *offp + sizeof(struct flat_binder_object);
-		switch (fp->type) {
+
+		hdr = (struct binder_object_header *)(t->buffer->data + *offp);
+		off_min = *offp + object_size;
+		switch (hdr->type) {
 		case BINDER_TYPE_BINDER:
 		case BINDER_TYPE_WEAK_BINDER: {
 			struct flat_binder_object *fp;
@@ -2143,6 +2153,7 @@ static void binder_transaction(struct binder_proc *proc,
 			fp = to_flat_binder_object(hdr);
 			ret = binder_translate_binder(fp, t, thread);
 			if (ret < 0) {
+
 				return_error = BR_FAILED_REPLY;
 				goto err_translate_failed;
 			}
@@ -2240,7 +2251,7 @@ static void binder_transaction(struct binder_proc *proc,
 		} break;
 		default:
 			binder_user_error("%d:%d got transaction with invalid object type, %x\n",
-				proc->pid, thread->pid, fp->type);
+				proc->pid, thread->pid, hdr->type);
 			return_error = BR_FAILED_REPLY;
 			goto err_bad_object_type;
 		}
