@@ -106,7 +106,13 @@ static int rproc_exit_secure_playback(struct rproc *rproc)
 	do {
 		/* invoke service to exit secure mode */
 		ret = rproc_secure_drm_service(EXIT_SECURE_PLAYBACK,
-								secure_params);
+#if defined(CONFIG_DRM_WIDEVINE)
+                ret = rproc_secure_drm_service(EXIT_SECURE_PLAYBACK,
+                                                                secure_params);
+#else
+               ret = rproc_secure_drm_service(RPROC_EXIT_SECURE_PLAYBACK,
+                                                               secure_params);
+#endif
 		if (ret == -EBUSY) {
 			dev_warn(&rproc->dev,
 				"EBUSY disabling secure mode, try %d/%d\n",
