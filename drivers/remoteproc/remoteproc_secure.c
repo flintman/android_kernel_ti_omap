@@ -105,7 +105,6 @@ static int rproc_exit_secure_playback(struct rproc *rproc)
 	 */
 	do {
 		/* invoke service to exit secure mode */
-		ret = rproc_secure_drm_service(EXIT_SECURE_PLAYBACK,
 #if defined(CONFIG_DRM_WIDEVINE)
                 ret = rproc_secure_drm_service(EXIT_SECURE_PLAYBACK,
                                                                 secure_params);
