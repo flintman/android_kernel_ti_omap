@@ -49,6 +49,12 @@
 #include "remoteproc_internal.h"
 
 #define DEFAULT_AUTOSUSPEND_TIMEOUT 5000
+#define RPROC_WAKELOCK_TIMEOUT (5*HZ)
+#ifdef CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_SOHO
+	#define M3_IDLEST_SUSPEND		0x00070000
+	#define OMAP4430_CM_M3_M3_CLKCTRL	0x4A008920
+	static void __iomem *idle_st;
+#endif
 
 #define dev_to_rproc(dev) container_of(dev, struct rproc, dev)
 
@@ -2168,6 +2174,12 @@ static int _reset_all_vdev(struct rproc *rproc)
 {
 	struct rproc_vdev *rvdev, *rvtmp;
 
+#ifdef CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_SOHO
+	unsigned long ta;
+	if (!idle_st)
+		idle_st = ioremap(OMAP4430_CM_M3_M3_CLKCTRL, sizeof(u32));
+#endif
+
 	dev_dbg(&rproc->dev, "reseting virtio devices for %s\n", rproc->name);
 
 	/* reset firewalls */
@@ -2176,6 +2188,18 @@ static int _reset_all_vdev(struct rproc *rproc)
 	/* clean up remote vdev entries */
 	list_for_each_entry_safe(rvdev, rvtmp, &rproc->rvdevs, node)
 		rproc_remove_virtio_dev(rvdev);
+
+#ifdef CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_SOHO
+	ta = jiffies + msecs_to_jiffies(1000);
+	while ((readl(idle_st) & M3_IDLEST_SUSPEND) != M3_IDLEST_SUSPEND) {
+		if (time_after(jiffies, ta)) {
+			printk(KERN_ERR "Ducati cannot reach idle state!\n");
+			break;
+		} else {
+			usleep_range(1000, 1500);
+		}
+	}
+#endif
 
 	/* run rproc_fw_config_virtio to create vdevs again */
 #ifdef CONFIG_USE_AMAZON_DUCATI
@@ -2709,6 +2733,11 @@ int rproc_unregister(struct rproc *rproc)
 
 	/* the rproc will only be released after its refcount drops to zero */
 	kref_put(&rproc->refcount, rproc_release);
+
+#ifdef CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_SOHO
+	if (idle_st)
+		iounmap(idle_st);
+#endif
 
 	return 0;
 }

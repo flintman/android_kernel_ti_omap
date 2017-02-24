@@ -361,7 +361,7 @@ static int __init omap_rproc_init(void)
 			ret = PTR_ERR(od);
 			continue;
 		}
-
+#ifndef CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_SOHO
 		/*Select the 512MB version of the firmware for 512MB memory
 		  * configuration for IPU
 		  */
@@ -374,7 +374,7 @@ static int __init omap_rproc_init(void)
 				omap4_rproc_data[i].firmware = "ducati-m3-core0_256MB.xem3";
 			}
 		}
-
+#endif
 		ret = platform_device_add_data(pdev,
 					&omap4_rproc_data[i],
 					sizeof(struct omap_rproc_pdata));
