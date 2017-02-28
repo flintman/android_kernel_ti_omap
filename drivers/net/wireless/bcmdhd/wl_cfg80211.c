@@ -340,9 +340,7 @@ static s32 wl_notify_escan_complete(struct wl_priv *wl,
 static s32 wl_cfg80211_tdls_oper(struct wiphy *wiphy, struct net_device *dev,
 	u8 *peer, enum nl80211_tdls_operation oper);
 #endif /* LINUX_VERSION_CODE > KERNEL_VERSION(3, 2, 0) */
-#ifdef WL_SCHED_SCAN
 static int wl_cfg80211_sched_scan_stop(struct wiphy *wiphy, struct net_device *dev);
-#endif
 
 /*
  * event & event Q handlers for cfg80211 interfaces
@@ -705,7 +703,9 @@ static const u32 __wl_cipher_suites[] = {
 	WLAN_CIPHER_SUITE_WEP104,
 	WLAN_CIPHER_SUITE_TKIP,
 	WLAN_CIPHER_SUITE_CCMP,
+#ifdef MFP
 	WLAN_CIPHER_SUITE_AES_CMAC,
+#endif
 };
 
 
@@ -2288,7 +2288,7 @@ __wl_cfg80211_scan(struct wiphy *wiphy, struct net_device *ndev,
 		/* we don't do iscan in ibss */
 		ssids = this_ssid;
 	}
-	if (request && (wl->p2p && !p2p_scan(wl)))
+	if (request && !p2p_scan(wl))
 		WL_TRACE_HW4(("START SCAN\n"));
 	wl->scan_request = request;
 	wl_set_drv_status(wl, SCANNING, ndev);
