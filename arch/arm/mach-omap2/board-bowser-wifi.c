@@ -32,7 +32,7 @@
 #include "control.h"
 #include "mux.h"
 
-#if defined( CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_BOWSER7 )
+#if defined( CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_BOWSER7 ) || defined( CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_SOHO )
 #define GPIO_WLAN_SPI_NSDIO_SEL		122
 #endif
 
@@ -100,7 +100,6 @@ int __init bowser_wifi_mem_init(void)
 	return 0;
 }
 
-#if 0
 static struct resource bowser_wifi_resources[] = {
 	[0] = {
 		.name		= "bcmdhd_wlan_irq",
@@ -109,7 +108,6 @@ static struct resource bowser_wifi_resources[] = {
 		.flags          = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL | IORESOURCE_IRQ_SHAREABLE,
 	},
 };
-#endif
 
 static int bowser_wifi_cd = 0; /* WIFI virtual 'card detect' status */
 static void (*wifi_status_cb)(int card_present, void *dev_id);
@@ -295,10 +293,8 @@ struct platform_device bowser_wifi_device = {
 		.dev            = {
         		.platform_data = &bowser_wifi_control,
 		},
-#if 0
 		.resource = bowser_wifi_resources,
 		.num_resources = ARRAY_SIZE(bowser_wifi_resources),
-#endif
 };
 
 void __init bowser_wifi_mux_init(void)
@@ -336,17 +332,15 @@ void __init bowser_wifi_mux_init(void)
 #endif
 
 	/* WIFI related GPIOs */
-#if 0
 	if( gpio_request(GPIO_WLAN_HOST_WAKE, "bcm4330") ||
 	    gpio_direction_input(GPIO_WLAN_HOST_WAKE))
 		pr_err("Error in initializing Wifi host wake up gpio.\n");
-#endif
 
 	if (gpio_request(GPIO_WLAN_EN, "bcm4330") ||
 	    gpio_direction_output(GPIO_WLAN_EN, 1))
 		pr_err("Error in initializing Wifi chip enable gpio.\n");
 
-#if defined( CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_BOWSER7 )
+#if defined( CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_BOWSER7 ) || defined( CONFIG_MACH_OMAP4_BOWSER_SUBTYPE_SOHO )
 	omap_mux_init_gpio(GPIO_WLAN_SPI_NSDIO_SEL, OMAP_PIN_OUTPUT);
 	if (gpio_request(GPIO_WLAN_SPI_NSDIO_SEL, "bcm4330") ||
 	    gpio_direction_output(GPIO_WLAN_SPI_NSDIO_SEL, 0))
@@ -367,10 +361,8 @@ int __init bowser_wifi_init(void)
 	bowser_wifi_mux_init();
 	bowser_wifi_mem_init();
 	
-#if 0
 	bowser_wifi_resources[0].start = gpio_to_irq( GPIO_WLAN_HOST_WAKE );
 	bowser_wifi_resources[0].end = gpio_to_irq( GPIO_WLAN_HOST_WAKE );
-#endif
 
 	rc = platform_device_register(&bowser_wifi_device);
 	return rc;
