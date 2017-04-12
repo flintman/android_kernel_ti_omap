@@ -1191,7 +1191,14 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
 	if (data->stop && ((!(host->flags & AUTO_CMD12)) || data->error)) {
 		omap_hsmmc_start_command(host, data->stop, NULL, 0);
 	} else {
+#ifndef CONFIG_MACH_OMAP4_BOWSER
 		if (data->stop)
+#else
+		struct mmc_request *req = host->mrq;
+
+		/* fill-in stop status only if CMD12 has actually been send */
+		if (data->stop && !req->sbc)
+#endif
 			data->stop->resp[0] = OMAP_HSMMC_READ(host->base,
 							RSP76);
 		omap_hsmmc_request_done(host, data->mrq);
