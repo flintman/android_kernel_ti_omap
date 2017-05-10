@@ -777,7 +777,8 @@ static void max97236_detection_manual_0(struct max97236_priv *max97236)
 		max97236_jack_report(max97236, jack_state);
 
 		/* Enable key detection interrupts */
-		if (max97236->jack_status == SND_JACK_HEADSET) {
+		if ((max97236->jack_status == SND_JACK_HEADSET) ||
+			(max97236->jack_status == SND_JACK_DATA)) {
 			/* configure MIC BIAS resistor: always 2.2k */
 			snd_soc_update_bits(codec, MAX97236_MICROPHONE,
 				MAX97236_MICROPHONE_MICR_MASK, 0);
@@ -832,6 +833,15 @@ static void max97236_jack_work(struct work_struct *work)
 		snd_soc_update_bits(codec, MAX97236_ENABLE_1,
 				MAX97236_ENABLE_1_SHDN_MASK, 0x00);
 	}
+
+	/* get most up-to-date status.
+	* this will also clear any pending irq from max97236 */
+	max97236->status_1 = snd_soc_read(codec, MAX97236_STATUS_1);
+	max97236->status_2 = snd_soc_read(codec, MAX97236_STATUS_2);
+
+	if (max97236->status_2 != 0x0)
+		dev_err(codec->dev, "Status register 2 in bad state!\n");
+
 }
 
 void max97236_detect_jack(struct snd_soc_codec *codec)

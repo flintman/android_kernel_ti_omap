@@ -63,6 +63,8 @@ static struct clk *mclk;
 static unsigned int fll_clk = SYS_CLK_RATE;
 static unsigned int sys_clk = SYS_CLK_RATE;
 
+void wrapper_max98090_switches_closed(void);
+
 /*static enum snd_soc_bias_level bias_level = SND_SOC_BIAS_OFF;*/
 static struct snd_soc_jack bowser_jack;
 
