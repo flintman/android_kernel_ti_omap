@@ -56,10 +56,14 @@ struct dentry *snd_soc_debugfs_root;
 EXPORT_SYMBOL_GPL(snd_soc_debugfs_root);
 #endif
 
+#undef dev_dbg
+#define dev_dbg dev_err
+
 static DEFINE_MUTEX(client_mutex);
 static LIST_HEAD(dai_list);
 static LIST_HEAD(platform_list);
 static LIST_HEAD(codec_list);
+
 
 int soc_new_pcm(struct snd_soc_pcm_runtime *rtd, int num);
 

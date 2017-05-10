@@ -27,6 +27,9 @@
 #define DEBUG
 #define EXTMIC_METHOD
 #define EXTMIC_METHOD_TEST
+#undef dev_dbg
+
+#define dev_dbg dev_err
 
 static struct i2c_client *private_max98090_client;
 

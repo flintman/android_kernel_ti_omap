@@ -59,6 +59,9 @@
 #define MCLK_RATE 19200000
 #define SYS_CLK_RATE	MCLK_RATE
 
+#undef dev_dbg
+#define dev_dbg dev_err
+
 static struct clk *mclk;
 static unsigned int fll_clk = SYS_CLK_RATE;
 static unsigned int sys_clk = SYS_CLK_RATE;
