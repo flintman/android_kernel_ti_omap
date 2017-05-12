@@ -17,6 +17,9 @@
 #include <linux/delay.h>
 #include <linux/workqueue.h>
 #include <linux/kmod.h>
+#ifdef CONFIG_MACH_OMAP4_BOWSER
+#include <linux/wakelock.h>
+#endif
 
 /* 
  * Timeout for stopping processes
