@@ -644,8 +644,7 @@ int rt6_route_rcv(struct net_device *dev, u8 *opt, int len,
 	if (rinfo->prefix_len == 0)
 		rt = rt6_get_dflt_router(gwaddr, dev);
 	else
-		rt = rt6_get_route_info(dev, prefix, rinfo->prefix_len,
-					gwaddr, dev->ifindex);
+		rt = rt6_get_route_info(dev, prefix, rinfo->prefix_len, gwaddr);
 
 	if (rt && !lifetime) {
 		ip6_del_rt(rt);
@@ -1326,7 +1325,7 @@ int ip6_route_add(struct fib6_config *cfg)
 	if (!table)
 		goto out;
 
-	rt = ip6_dst_alloc(&net->ipv6.ip6_dst_ops, NULL, DST_NOCOUNT);
+	rt = ip6_dst_alloc(&net->ipv6.ip6_dst_ops, NULL, (cfg->fc_flags & RTF_ADDRCONF) ? 0 : DST_NOCOUNT);
 
 	if (!rt) {
 		err = -ENOMEM;
