@@ -213,7 +213,6 @@ config SND_OMAP_SOC_BOWSER
 	select SND_OMAP_SOC_BOWSER_MAXIM if (MACH_OMAP4_BOWSER_SUBTYPE_BOWSER7 || MACH_OMAP4_BOWSER_SUBTYPE_SOHO)
 	select SND_OMAP_SOC_ABE
 	select SND_OMAP_SOC_ABE_DSP
-	select ABE_44100
 	help
 	  Say Y if you want to add support for SoC audio on Lab126 Bowser
 
