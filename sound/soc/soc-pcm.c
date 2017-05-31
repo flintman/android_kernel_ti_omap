@@ -34,9 +34,6 @@
 
 #include "soc-private.h"
 
-#undef dev_dbg
-#define dev_dbg dev_err
-
 #define MAX_BE_USERS	8	/* adjust if too low for everday use */
 
 static int soc_dpcm_be_dai_hw_free(struct snd_soc_pcm_runtime *fe, int stream);

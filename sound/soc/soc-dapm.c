@@ -47,9 +47,6 @@
 #define NAME_SIZE	32
 #define DAPM_UPDATE_STAT(widget, val) widget->dapm->card->dapm_stats.val++;
 
-#undef dev_dbg
-#define dev_dbg dev_err
-
 /* dapm power sequences - make this per codec in the future */
 static int dapm_up_seq[] = {
 	[snd_soc_dapm_pre] = 0,
