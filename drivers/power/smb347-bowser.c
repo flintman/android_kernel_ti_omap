@@ -621,7 +621,7 @@ static void smb347_get_reg(struct smb347_priv *priv, u8 reg)
 				__func__, reg, ret);
 		return;
 	}
-	dev_info(priv->dev, "REG-%02x: %02x\n", reg, val);
+	dev_dbg(priv->dev, "REG-%02x: %02x\n", reg, val);
 }
 
 static int smb347_set_charge_control(struct smb347_priv *priv)
@@ -899,7 +899,7 @@ static void summit_smb347_irq_worker(struct work_struct *work)
 		dev_warn(priv->dev,
 			"Failed to read SMB347_INTSTAT_REG_F: %d\n", ret);
 	} else {
-		dev_info(priv->dev, "INTSTAT_REG_F is %02x\n", value);
+		dev_dbg(priv->dev, "INTSTAT_REG_F is %02x\n", value);
 		if (value & 0x02) {
 			if (value & 0x01) { /* power OK */
 				atomic_set(&priv->charger_on, 1);
@@ -920,7 +920,7 @@ static void summit_smb347_irq_worker(struct work_struct *work)
 	} else {
 		smb347_get_reg(priv, SMB347_ENABLE_CONTROL);
 		smb347_get_reg(priv, SMB347_STATUS_REG_D);
-		dev_info(priv->dev, "INTSTAT_REG_D is %02x|charger_on = %d\n",
+		dev_dbg(priv->dev, "INTSTAT_REG_D is %02x|charger_on = %d\n",
 				value, atomic_read(&priv->charger_on));
 
 		if (smb347_i2c_read(priv->i2c_client, SMB347_STATUS_REG_D,

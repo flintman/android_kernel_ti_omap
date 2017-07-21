@@ -473,7 +473,7 @@ int twl6030_usb_event(enum twl6030_usb_events event)
 	if (event < 0 || event >= TWL6030_USB_EVENT_COUNT)
 		return -EINVAL;
 
-	dev_info(twl->dev, "Receive event %-14s, state=%s, supply=%d\n",
+	dev_dbg(twl->dev, "Receive event %-14s, state=%s, supply=%d\n",
 		twl6030_event_str[event], twl6030_event_str[twl->state],
 		twl->supply_type);
 
